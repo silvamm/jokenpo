@@ -25,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
     public MediaPlayer tocador;
     public TextView pontosVitorias;
     public TextView pontosDerrotas;
+    public TextView pontosEmpates;
+    public int empates = 0;
     public int vitorias = 0;
     public int derrotas = 0;
 
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         imgViewMaquina = findViewById(R.id.imgViewEscolhaMaquina);
         pontosVitorias = findViewById(R.id.pontosVitoria);
         pontosDerrotas = findViewById(R.id.pontosDerrotas);
+        pontosEmpates = findViewById(R.id.pontosEmpates);
 
         jogadaMaquina = new Random();
 
@@ -74,10 +77,8 @@ public class MainActivity extends AppCompatActivity {
         imgBtnPapel.setEnabled(true);
         imgBtnTesoura.setEnabled(true);
         imgBtnPedra.setEnabled(true);
+
     }
-
-
-
 
     public void iniciarJogada(JogadaEnum jogadaUsuario){
 
@@ -100,6 +101,18 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
+//        Thread t1 = new Thread(() -> {
+//            try {
+//                Thread.sleep(Toast.LENGTH_SHORT);
+//                finalizar();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//
+//
+//        });
+//        t1.start();
+
         if(jogadaPC.equals(jogadaUsuario)){
             empate();
         }else if(jogadaPC.equals(JogadaEnum.PAPEL) && jogadaUsuario.equals(JogadaEnum.PEDRA)) {
@@ -118,12 +131,19 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+//    public void finalizar(){
+//        imgViewMaquina.setImageResource(R.drawable.interrogacao);
+//    }
 
 
     public void empate(){
         Toast.makeText(MainActivity.this,"EMPATE!",Toast.LENGTH_SHORT).show();
+        empates++;
+        pontosEmpates.setText(String.valueOf(empates));
         tocarMusicaEmpate();
         ativarBotoes();
+
+
     }
 
     public void derrota(){
@@ -132,6 +152,8 @@ public class MainActivity extends AppCompatActivity {
         pontosDerrotas.setText(String.valueOf(derrotas));
         tocarMusicaDerrota();
         ativarBotoes();
+
+
     }
 
     public void ganhou(){
@@ -141,6 +163,8 @@ public class MainActivity extends AppCompatActivity {
         tocarMusicaVitoria();
 
     }
+
+
 
     public void tocarMusicaJogada(JogadaEnum jogadaUsuario){
 
@@ -167,9 +191,10 @@ public class MainActivity extends AppCompatActivity {
         }
         tocador = MediaPlayer.create(this, R.raw.aplausos);
         tocador.start();
-        tocador.seekTo(3000);
+        tocador.seekTo(4000);
         tocador.setOnCompletionListener(mp -> {
             ativarBotoes();
+
         });
 
     }
