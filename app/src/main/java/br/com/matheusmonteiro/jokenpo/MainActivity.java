@@ -2,8 +2,12 @@ package br.com.matheusmonteiro.jokenpo;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     public ImageButton imgBtnTesoura;
     public ImageView imgViewJogador;
     public ImageView imgViewMaquina;
+    public AnimationDrawable animation;
     public Random jogadaMaquina;
     public MediaPlayer tocador;
     public TextView pontosVitorias;
@@ -35,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         imgBtnPedra = findViewById(R.id.imgBtnPedra);
         imgBtnPapel = findViewById(R.id.imgBtnPapel);
@@ -83,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     public void iniciarJogada(JogadaEnum jogadaUsuario){
 
         tocarMusicaJogada(jogadaUsuario);
+
     }
 
     public void completarJogada(JogadaEnum jogadaUsuario){
@@ -100,18 +107,6 @@ public class MainActivity extends AppCompatActivity {
                 imgViewMaquina.setImageResource(R.drawable.tesoura);
                 break;
         }
-
-//        Thread t1 = new Thread(() -> {
-//            try {
-//                Thread.sleep(Toast.LENGTH_SHORT);
-//                finalizar();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//
-//
-//        });
-//        t1.start();
 
         if(jogadaPC.equals(jogadaUsuario)){
             empate();
@@ -131,10 +126,58 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-//    public void finalizar(){
-//        imgViewMaquina.setImageResource(R.drawable.interrogacao);
-//    }
 
+    public void animacao(){
+
+        imgViewMaquina.setImageResource(R.drawable.animacao);
+        animation = (AnimationDrawable) imgViewMaquina.getDrawable();
+        animation.start();
+
+        Animation deslocamento = new TranslateAnimation(0, 0, 0, 0);
+        deslocamento.setDuration(3000);
+        imgViewMaquina.startAnimation(deslocamento);
+
+    }
+
+    public void tocarMusicaJogada(JogadaEnum jogadaUsuario){
+
+        if(tocador != null){
+            tocador.stop();
+        }
+        tocador = MediaPlayer.create(this, R.raw.alex_play);
+        tocador.start();
+        animacao();
+        tocador.setOnCompletionListener(mp -> {
+
+            completarJogada(jogadaUsuario);
+            animation.stop();
+
+        });
+
+    }
+
+    public void tocarMusicaEmpate(){
+
+    }
+
+    public void tocarMusicaVitoria(){
+
+        if(tocador != null){
+            tocador.stop();
+        }
+        tocador = MediaPlayer.create(this, R.raw.aplausos);
+        tocador.start();
+        tocador.seekTo(4000);
+        tocador.setOnCompletionListener(mp -> {
+            ativarBotoes();
+
+        });
+
+    }
+
+    public void tocarMusicaDerrota(){
+
+    }
 
     public void empate(){
         Toast.makeText(MainActivity.this,"EMPATE!",Toast.LENGTH_SHORT).show();
@@ -164,44 +207,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
-    public void tocarMusicaJogada(JogadaEnum jogadaUsuario){
-
-        if(tocador != null){
-            tocador.stop();
-        }
-        tocador = MediaPlayer.create(this, R.raw.alex_play);
-        tocador.start();
-        tocador.setOnCompletionListener(mp -> {
-            completarJogada(jogadaUsuario);
-
-        });
-
-    }
-
-    public void tocarMusicaEmpate(){
-
-    }
-
-    public void tocarMusicaVitoria(){
-
-        if(tocador != null){
-            tocador.stop();
-        }
-        tocador = MediaPlayer.create(this, R.raw.aplausos);
-        tocador.start();
-        tocador.seekTo(4000);
-        tocador.setOnCompletionListener(mp -> {
-            ativarBotoes();
-
-        });
-
-    }
-
-    public void tocarMusicaDerrota(){
-
-    }
     public enum JogadaEnum {
 
         PEDRA(0), PAPEL(1), TESOURA(2);
@@ -226,4 +231,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     };
+
+
 }
