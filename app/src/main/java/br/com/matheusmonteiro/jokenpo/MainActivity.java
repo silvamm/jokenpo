@@ -1,44 +1,57 @@
 package br.com.matheusmonteiro.jokenpo;
 
+import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.squareup.picasso.Picasso;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import br.com.matheusmonteiro.jokenpo.bean.Usuario;
+
 public  class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
+    public View cabecalho;
     public ImageButton imgBtnPedra;
     public ImageButton imgBtnPapel;
     public ImageButton imgBtnTesoura;
     public ImageView imgViewJogador;
     public ImageView imgViewMaquina;
+    public ImageView imgFotoJogador;
     public AnimationDrawable animation;
     public Random jogadaMaquina;
     public MediaPlayer tocador;
     public TextView pontosVitorias;
     public TextView pontosDerrotas;
     public TextView pontosEmpates;
+    public TextView menuLateralNomeJogador;
+    public TextView menuLateralEmailJogador;
+    public Usuario jogador;
     public int empates = 0;
     public int vitorias = 0;
     public int derrotas = 0;
@@ -60,6 +73,10 @@ public  class MainActivity extends AppCompatActivity implements NavigationView.O
         pontosVitorias = findViewById(R.id.pontosVitoria);
         pontosDerrotas = findViewById(R.id.pontosDerrotas);
         pontosEmpates = findViewById(R.id.pontosEmpates);
+        menuLateralNomeJogador = findViewById(R.id.nav_header_title);
+        menuLateralEmailJogador = findViewById(R.id.nav_header_title_email);
+        imgFotoJogador = findViewById(R.id.nav_header_foto);
+
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -68,6 +85,23 @@ public  class MainActivity extends AppCompatActivity implements NavigationView.O
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
+
+        jogador = (Usuario) getIntent().getSerializableExtra(Usuario.class.getSimpleName());
+        if(jogador != null){
+
+            cabecalho = navigationView.getHeaderView(0);
+
+            menuLateralNomeJogador = cabecalho.findViewById(R.id.nav_header_title);
+            menuLateralEmailJogador = cabecalho.findViewById(R.id.nav_header_title_email);
+            imgFotoJogador = cabecalho.findViewById(R.id.nav_header_foto);
+
+            Picasso.get().load(jogador.getFoto()).into(imgFotoJogador);
+
+            menuLateralEmailJogador.setText(jogador.getEmail());
+            menuLateralNomeJogador.setText(jogador.getNome());
+
+
+         }
 
         jogadaMaquina = new Random();
 
@@ -106,26 +140,27 @@ public  class MainActivity extends AppCompatActivity implements NavigationView.O
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
-        int id = item.getItemId();
 
-//        if (id == R.id.nav_home) {
-//            // Handle the camera action
-//        } else if (id == R.id.nav_gallery) {
-//
-//        } else if (id == R.id.nav_slideshow) {
-//
-//        } else if (id == R.id.nav_tools) {
-//
-//        } else if (id == R.id.nav_share) {
-//
-//        } else if (id == R.id.nav_send) {
-//
-//        }
+        switch (item.getItemId()) {
+            case R.id.nav_home_btn_exit:
+                logOut();
+                return true;
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
+            default:
+                DrawerLayout drawer = findViewById(R.id.drawer_layout);
+                drawer.closeDrawer(GravityCompat.START);
+                return true;
+        }
+
     }
+
+    private void logOut(){
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent();
+        intent.setClass(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+    }
+
 
 
     public void desativarBotoes(){
@@ -182,7 +217,7 @@ public  class MainActivity extends AppCompatActivity implements NavigationView.O
     }
 
 
-    public void animacao(){
+    public void comecarAnimacao(){
 
         imgViewMaquina.setImageResource(R.drawable.animacao);
         animation = (AnimationDrawable) imgViewMaquina.getDrawable();
@@ -194,6 +229,12 @@ public  class MainActivity extends AppCompatActivity implements NavigationView.O
 
     }
 
+    public void pararAnimacao(){
+        if(animation != null){
+            animation.stop();
+        }
+    }
+
     public void tocarMusicaJogada(JogadaEnum jogadaUsuario){
 
         if(tocador != null){
@@ -201,11 +242,12 @@ public  class MainActivity extends AppCompatActivity implements NavigationView.O
         }
         tocador = MediaPlayer.create(this, R.raw.alex_play);
         tocador.start();
-        animacao();
+        comecarAnimacao();
         tocador.setOnCompletionListener(mp -> {
 
             completarJogada(jogadaUsuario);
-            animation.stop();
+            pararAnimacao();
+
 
         });
 
@@ -220,13 +262,13 @@ public  class MainActivity extends AppCompatActivity implements NavigationView.O
         if(tocador != null){
             tocador.stop();
         }
-        tocador = MediaPlayer.create(this, R.raw.aplausos);
-        tocador.start();
-        tocador.seekTo(4000);
-        tocador.setOnCompletionListener(mp -> {
-            ativarBotoes();
-
-        });
+//        tocador = MediaPlayer.create(this, R.raw.aplausos);
+//        tocador.start();
+//        tocador.seekTo(4000);
+//        tocador.setOnCompletionListener(mp -> {
+//            ativarBotoes();
+//
+//        });
 
     }
 
@@ -245,7 +287,7 @@ public  class MainActivity extends AppCompatActivity implements NavigationView.O
     }
 
     public void derrota(){
-        Toast.makeText(MainActivity.this,"PERDEU!",Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this,"NÃO FOI DESSA VEZ! TENTE NOVAMENTE!",Toast.LENGTH_SHORT).show();
         derrotas++;
         pontosDerrotas.setText(String.valueOf(derrotas));
         tocarMusicaDerrota();
@@ -255,11 +297,11 @@ public  class MainActivity extends AppCompatActivity implements NavigationView.O
     }
 
     public void ganhou(){
-        Toast.makeText(MainActivity.this,"GANHOU!",Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this,"GANHOU! PARABÉNS!",Toast.LENGTH_SHORT).show();
         vitorias++;
         pontosVitorias.setText(String.valueOf(vitorias));
         tocarMusicaVitoria();
-
+        ativarBotoes();
     }
 
 
